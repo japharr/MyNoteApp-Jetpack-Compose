@@ -8,8 +8,12 @@ import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Surface
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
+import com.japharr.mynoteapp.model.Note
+import com.japharr.mynoteapp.screen.NoteScreen
 import com.japharr.mynoteapp.ui.theme.MyNoteAppTheme
 
 class MainActivity : ComponentActivity() {
@@ -22,22 +26,15 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colors.background
                 ) {
-                    Greeting("Android")
+                    val notes = remember {
+                        mutableStateListOf<Note>()
+                    }
+                    NoteScreen(notes = notes,
+                        onAddNote = { note -> notes.add(note) },
+                        onRemoveNote = { note -> notes.remove(note) }
+                    )
                 }
             }
         }
-    }
-}
-
-@Composable
-fun Greeting(name: String) {
-    Text(text = "Hello $name!")
-}
-
-@Preview(showBackground = true)
-@Composable
-fun DefaultPreview() {
-    MyNoteAppTheme {
-        Greeting("Android")
     }
 }
