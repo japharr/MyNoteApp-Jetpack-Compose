@@ -2,6 +2,8 @@ package com.japharr.mynoteapp.screen
 
 import android.widget.Toast
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -14,6 +16,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
@@ -24,15 +27,19 @@ import com.japharr.mynoteapp.component.NoteInputText
 import com.japharr.mynoteapp.model.Note
 import com.japharr.mynoteapp.util.formatDate
 import java.time.format.DateTimeFormatter
+import java.util.*
 
 @Composable
 fun NoteScreen(
     notes: List<Note>,
     onAddNote: (Note) -> Unit,
+    onUpdateNote: (Note) -> Unit,
     onRemoveNote: (Note) -> Unit
 ) {
+    var id: UUID? by remember { mutableStateOf(null)}
     var title by remember { mutableStateOf("") }
     var description by remember { mutableStateOf("") }
+    var entryDate by remember { mutableStateOf<Date>(Date()) }
     val context = LocalContext.current
 
     Column(modifier = Modifier.padding(6.dp)) {
@@ -54,10 +61,15 @@ fun NoteScreen(
             NoteButton(text = "Save",
                 onClick = {
                     if(title.isNotEmpty() && description.isNotEmpty()) {
-                        onAddNote(Note(title = title, description = description))
+                        if(id == null) {
+                            onAddNote(Note(title = title, description = description))
+                        } else {
+                            onUpdateNote(Note(id = id!!, title = title, description = description, entryDate = entryDate))
+                        }
+                        id = null
                         title = "";
                         description = ""
-                        Toast.makeText(context, "Note Added", Toast.LENGTH_LONG).show()
+                        Toast.makeText(context, "Note Saved", Toast.LENGTH_LONG).show()
                     }
                 })
 
@@ -65,7 +77,16 @@ fun NoteScreen(
 
             LazyColumn() {
                 items(notes) { note ->
-                    NoteRow(note = note, onNoteClicked = { onRemoveNote(note)})
+                    NoteRow(
+                        note = note,
+                        onNoteLongClicked = { onRemoveNote(note)},
+                        onNoteClicked = {
+                            id = it.id
+                            title = it.title
+                            description = it.description
+                            entryDate = it.entryDate
+                        }
+                    )
                 }
             }
         }
@@ -74,8 +95,8 @@ fun NoteScreen(
 
 @Composable
 fun NoteRow(
-    modifier: Modifier = Modifier,
     onNoteClicked: (Note) -> Unit,
+    onNoteLongClicked: (Note) -> Unit,
     note: Note
 ) {
     Surface(
@@ -88,7 +109,12 @@ fun NoteRow(
     ) {
         Column(modifier = Modifier
             .padding(horizontal = 10.dp, vertical = 6.dp)
-            .clickable { onNoteClicked(note) },
+            .clickable { onNoteClicked(note) }
+            .pointerInput(Unit) {
+                detectTapGestures(
+                    onLongPress = { onNoteLongClicked(note) }
+                )
+            },
             horizontalAlignment = Alignment.Start
         ) {
             Text(text = note.title, style = MaterialTheme.typography.subtitle2)
@@ -101,5 +127,5 @@ fun NoteRow(
 @Preview(showBackground = true)
 @Composable
 fun NoteScreenPreview() {
-    NoteScreen(notes = emptyList(), onAddNote = {}, onRemoveNote = {})
+    NoteScreen(notes = emptyList(), onAddNote = {}, onRemoveNote = {}, onUpdateNote = {})
 }
