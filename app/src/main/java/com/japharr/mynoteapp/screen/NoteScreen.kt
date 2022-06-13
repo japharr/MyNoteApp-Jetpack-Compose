@@ -22,6 +22,7 @@ import com.japharr.mynoteapp.R
 import com.japharr.mynoteapp.component.NoteButton
 import com.japharr.mynoteapp.component.NoteInputText
 import com.japharr.mynoteapp.model.Note
+import com.japharr.mynoteapp.util.formatDate
 import java.time.format.DateTimeFormatter
 
 @Composable
@@ -92,7 +93,7 @@ fun NoteRow(
         ) {
             Text(text = note.title, style = MaterialTheme.typography.subtitle2)
             Text(text = note.description, style = MaterialTheme.typography.subtitle1)
-            Text(text = note.entryDate.format(DateTimeFormatter.ofPattern("EEE, d MMM")), style = MaterialTheme.typography.caption)
+            Text(text = formatDate(note.entryDate.time), style = MaterialTheme.typography.caption)
         }
     }
 }
